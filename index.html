@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090e1b">
+<title>IP Glass · IP 安全檢查</title>
+<style>
+*{box-sizing:border-box}
+:root{color-scheme:dark}
+body{
+ margin:0;min-height:100vh;padding:22px 15px;
+ font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;
+ color:#f2f7ff;
+ background:
+ radial-gradient(ellipse at 10% 10%,#3978e64d,transparent 40%),
+ radial-gradient(ellipse at 90% 30%,#00d9ff30,transparent 38%),
+ radial-gradient(ellipse at 50% 100%,#8b5cf62c,transparent 45%),
+ linear-gradient(135deg,#080d19,#111b31 55%,#070b14);
+ background-attachment:fixed;
+}
+main{width:100%;max-width:560px;margin:20px auto}
+header{text-align:center;margin-bottom:25px}
+.logo{
+ width:72px;height:72px;margin:0 auto 15px;border-radius:23px;
+ display:grid;place-items:center;font-size:35px;
+ background:linear-gradient(135deg,#ffffff30,#8bdcff12);
+ border:1px solid #ffffff50;
+ box-shadow:0 8px 32px #00c8ff20,inset 0 1px 1px #ffffff55;
+ backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)
+}
+h1{font-size:27px;letter-spacing:1px;margin:0 0 8px}
+.sub{font-size:13px;color:#aebed8}
+.card{
+ position:relative;overflow:hidden;padding:21px;margin-bottom:16px;
+ border-radius:22px;
+ background:linear-gradient(135deg,#ffffff16,#ffffff06 55%,#8bdcff0c);
+ border:1px solid #ffffff2b;
+ box-shadow:0 15px 40px #0003,inset 0 1px 0 #ffffff20;
+ backdrop-filter:blur(22px) saturate(150%);
+ -webkit-backdrop-filter:blur(22px) saturate(150%);
+ transition:border-color .2s,box-shadow .2s
+}
+.card:before{
+ content:"";position:absolute;top:0;left:12%;width:76%;height:1px;
+ background:linear-gradient(90deg,transparent,#ffffff80,transparent);
+ pointer-events:none
+}
+.card:hover{border-color:#9be7ff55;box-shadow:0 18px 45px #0004,0 0 24px #38bdf815}
+.section-title{font-size:15px;font-weight:750;letter-spacing:.5px;margin-bottom:16px}
+.label{font-size:13px;color:#a8bddb;margin-bottom:6px}
+.ip{font-size:clamp(19px,5vw,25px);font-weight:750;overflow-wrap:anywhere}
+.country{font-size:24px;font-weight:750;overflow-wrap:anywhere}
+.line{height:1px;margin:16px 0;background:linear-gradient(90deg,transparent,#ffffff30,#8bdcff22,transparent)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.tag{
+ display:inline-block;padding:6px 11px;border-radius:999px;
+ border:1px solid #ffffff25;background:#ffffff10;color:#d8eaff;
+ font-size:12px;backdrop-filter:blur(12px)
+}
+.status{font-size:13px;font-weight:750;text-align:right}
+.green{color:#72ffc0;text-shadow:0 0 15px #4ade8050}
+.red{color:#ff8fa3;text-shadow:0 0 15px #fb718550}
+.yellow{color:#ffd580;text-shadow:0 0 15px #fbbf2450}
+.detail{color:#c0cee3;font-size:13px;line-height:1.8;overflow-wrap:anywhere}
+button{
+ width:100%;padding:15px;border:1px solid #ffffff55;border-radius:15px;
+ color:white;font-size:15px;font-weight:750;cursor:pointer;
+ background:linear-gradient(110deg,#3b82f6dd,#06b6d4cc);
+ box-shadow:0 8px 25px #0284c733,inset 0 1px 0 #ffffff55;
+ backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+ transition:transform .2s,filter .2s
+}
+button:active{transform:scale(.98);filter:brightness(1.15)}
+button:disabled{opacity:.55;cursor:wait}
+.note{color:#a8bad4;font-size:12px;line-height:1.9}
+footer{text-align:center;padding:12px;color:#8396b4;font-size:12px}
+@media(max-width:380px){
+ body{padding:16px 11px}
+ .card{padding:17px;border-radius:19px}
+ h1{font-size:24px}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*:before,*:after{transition:none!important}
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+ <div class="logo">⌁</div>
+ <h1>IP Glass</h1>
+ <div class="sub">IP 地址 · 國家地區 · 網路業者 · 安全檢查</div>
+</header>
+
+<section class="card">
+ <div class="section-title">⌁ 我的公網 IP</div>
+ <div class="label">IPv4</div>
+ <div class="ip" id="ipv4">尚未查詢</div>
+ <div class="line"></div>
+ <div class="label">IPv6</div>
+ <div class="ip" id="ipv6">尚未查詢</div>
+ <div class="line"></div>
+ <div class="row">
+  <span class="label">網路狀態</span>
+  <span class="tag" id="network">等待查詢</span>
+ </div>
+</section>
+
+<section class="card">
+ <div class="section-title">◎ IP 地理資訊</div>
+ <div class="label">國家／地區</div>
+ <div class="country" id="ipCountry">尚未查詢</div>
+ <div class="line"></div>
+ <div class="label">城市／地區</div>
+ <div class="detail" id="ipLocation">尚未查詢</div>
+ <div class="line"></div>
+ <div class="label">網路業者</div>
+ <div class="detail" id="ipISP">尚未查詢</div>
+ <div class="line"></div>
+ <div class="label">時區</div>
+ <div class="detail" id="ipTimezone">尚未查詢</div>
+</section>
+
+<section class="card">
+ <div class="section-title">◇ IP 安全檢查</div>
+ <div class="row">
+  <span class="detail">IPv4 威脅名單</span>
+  <span class="status yellow" id="safe4">尚未檢查</span>
+ </div>
+ <div class="line"></div>
+ <div class="row">
+  <span class="detail">IPv6 威脅名單</span>
+  <span class="status yellow" id="safe6">尚未檢查</span>
+ </div>
+ <div class="line"></div>
+ <div class="detail" id="securityDetail">按下按鈕開始檢查。</div>
+</section>
+
+<button id="check" type="button">開始 IP 查詢與安全檢查</button>
+
+<section class="card" style="margin-top:16px">
+ <div class="section-title">ⓘ 檢查說明</div>
+ <div class="note">
+  • 國家、城市與業者資訊由 IP 資料庫推估，不是 GPS 定位。<br>
+  • 使用 VPN 或代理時，顯示位置可能是出口伺服器所在地。<br>
+  • 未發現已知威脅不等於絕對安全；命中名單也不代表手機中毒。<br>
+  • 查詢會將公網 IP 傳送給外部服務。<br>
+  • 本工具不會掃描手機、帳號或其他裝置。
+ </div>
+</section>
+
+<footer>IP Glass · 結果僅供參考</footer>
+</main>
+
+<script>
+(function(){
+"use strict";
+
+const $=id=>document.getElementById(id);
+const button=$("check");
+
+function setResult(id,text,cls){
+ const el=$(id);
+ el.textContent=text;
+ el.className="status "+cls;
+}
+
+async function getJSON(url){
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(),10000);
+ try{
+  const res=await fetch(url,{
+   cache:"no-store",
+   signal:controller.signal
+  });
+  if(!res.ok)throw new Error("HTTP "+res.status);
+  return await res.json();
+ }finally{
+  clearTimeout(timer);
+ }
+}
+
+async function getIP(url){
+ const data=await getJSON(url);
+ if(!data.ip||typeof data.ip!=="string")throw new Error("IP unavailable");
+ return data.ip.trim();
+}
+
+async function lookupCountry(ip){
+ if(!ip){
+  $("ipCountry").textContent="無可查詢的 IP";
+  $("ipLocation").textContent="未知";
+  $("ipISP").textContent="未知";
+  $("ipTimezone").textContent="未知";
+  return;
+ }
+
+ $("ipCountry").textContent="查詢中…";
+ $("ipLocation").textContent="查詢中…";
+ $("ipISP").textContent="查詢中…";
+ $("ipTimezone").textContent="查詢中…";
+
+ try{
+  const data=await getJSON("https://ipwho.is/"+encodeURIComponent(ip));
+  if(data.success===false)throw new Error("Lookup failed");
+
+  const flag=data.flag&&data.flag.emoji?data.flag.emoji+" ":"";
+  $("ipCountry").textContent=flag+(data.country||"未知");
+
+  const location=[data.region,data.city]
+   .filter(Boolean)
+   .filter((v,i,a)=>a.indexOf(v)===i)
+   .join("、");
+
+  $("ipLocation").textContent=location||"未知";
+  $("ipISP").textContent=
+   data.connection&&data.connection.isp
+    ?data.connection.isp:"未知";
+  $("ipTimezone").textContent=
+   data.timezone&&data.timezone.id
+    ?data.timezone.id:"未知";
+ }catch(e){
+  $("ipCountry").textContent="無法判定";
+  $("ipLocation").textContent="查詢失敗";
+  $("ipISP").textContent="查詢失敗";
+  $("ipTimezone").textContent="查詢失敗";
+ }
+}
+
+async function checkReputation(ip){
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(),10000);
+ try{
+  const res=await fetch(
+   "https://blackbox.ipinfo.app/api/v1/"+encodeURIComponent(ip),
+   {cache:"no-store",signal:controller.signal}
+  );
+  if(!res.ok)throw new Error("HTTP "+res.status);
+  const result=(await res.text()).trim().toUpperCase();
+
+  if(result==="Y")return{text:"發現可疑紀錄",cls:"red"};
+  if(result==="N")return{text:"未發現已知威脅",cls:"green"};
+  throw new Error("Unknown response");
+ }finally{
+  clearTimeout(timer);
+ }
+}
+
+async function checkOne(ip,id){
+ if(!ip){
+  setResult(id,"無可檢查的 IP","yellow");
+  return;
+ }
+ setResult(id,"檢查中…","yellow");
+ try{
+  const result=await checkReputation(ip);
+  setResult(id,result.text,result.cls);
+ }catch(e){
+  setResult(id,"無法判定","yellow");
+ }
+}
+
+async function runCheck(){
+ button.disabled=true;
+ button.textContent="查詢中…";
+
+ $("network").textContent="連線檢查中";
+ $("securityDetail").textContent="正在取得公網 IP…";
+ $("ipv4").textContent="查詢中…";
+ $("ipv6").textContent="查詢中…";
+ setResult("safe4","等待查詢","yellow");
+ setResult("safe6","等待查詢","yellow");
+
+ let ip4="";
+ let ip6="";
+
+ try{
+  ip4=await getIP("https://api.ipify.org?format=json");
+  $("ipv4").textContent=ip4;
+ }catch(e){
+  $("ipv4").textContent="查詢失敗";
+ }
+
+ try{
+  ip6=await getIP("https://api6.ipify.org?format=json");
+  $("ipv6").textContent=ip6;
+ }catch(e){
+  $("ipv6").textContent="未取得 IPv6";
+ }
+
+ if(!ip4&&!ip6){
+  $("network").textContent="查詢失敗";
+  $("securityDetail").textContent=
+   "無法取得公網 IP，請檢查網路連線或稍後重試。";
+  setResult("safe4","無法判定","yellow");
+  setResult("safe6","無法判定","yellow");
+  $("ipCountry").textContent="無法判定";
+  $("ipLocation").textContent="無法判定";
+  $("ipISP").textContent="無法判定";
+  $("ipTimezone").textContent="無法判定";
+ }else{
+  $("network").textContent="已取得 IP";
+  $("securityDetail").textContent="正在查詢地理資訊與威脅名單…";
+
+  await lookupCountry(ip4||ip6);
+
+  await Promise.all([
+   checkOne(ip4,"safe4"),
+   checkOne(ip6,"safe6")
+  ]);
+
+  $("securityDetail").textContent=
+   "檢查完成。結果只反映本次名單查詢，不能保證 IP 或手機絕對安全。";
+ }
+
+ button.disabled=false;
+ button.textContent="重新查詢";
+}
+
+button.addEventListener("click",runCheck);
+})();
+</script>
+</body>
+</html>
